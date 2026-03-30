@@ -38,7 +38,7 @@ This project implements a **production-ready inventory management system** for a
 | Member Name                | Unity ID |
 | -------------------------- | -------- |
 | Edward Feng                | sfeng9   |
-| Jaewoo Bae                 | jbae7    |
+| Shazia Muckram             | jbae7    |
 
 ---
 
@@ -114,7 +114,7 @@ This project is for **educational purposes** (CSC591 007 - Project).
 
 ## 🙏 Acknowledgments
 
-- **Course**: CSC591 007 - Ubiquitous Computing and Mobile Health
+- **Course**: CSC591 007 - Cyber-Physical Systems for Biometrics
 - **Institution**: North Carolina State University
 - **Project**: Fingerprint Authentication System
 
