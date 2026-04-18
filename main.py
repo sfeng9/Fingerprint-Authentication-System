@@ -5,5 +5,11 @@ from src.verification import identify_user
 from src.evaluation import calculate_metrics
 
 def main():
-    # 1. ENROLLMENT (Train set)
+    # 1. Enrollment (Train set)
+    # 2. Validation (Open-set identification)
+    # 3. Evaluation
+    # 4. Visualization (Matplotlib)
     return 0
+
+if __name__ == "__main__":
+    main()
