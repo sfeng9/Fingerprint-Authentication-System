@@ -1,11 +1,8 @@
 import cv2
 
+
 def extract_features(image):
-    """Extracts ORB features from the image."""
-    # Initialize ORB detector
-    orb = cv2.ORB_create(nfeatures=500)
-    
-    # find the keypoints and descriptors
-    kp, des = orb.detectAndCompute(image, None)
-    
+    """Extracts SIFT descriptors (more stable than ORB on ridge patterns)."""
+    sift = cv2.SIFT_create(nfeatures=300)
+    kp, des = sift.detectAndCompute(image, None)
     return kp, des
