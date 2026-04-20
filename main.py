@@ -8,11 +8,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.evaluation import calculate_metrics
+from src.evaluation import calculate_metrics, plot_roc_curve, plot_confusion_matrix
 from src.feature_extraction import extract_features
 from src.preprocessing import preprocess
 from src.utils import get_all_images, load_image
-from src.verification import identify_user
+from src.verification import identify_user, match_fingerprints
 
 
 def _project_root() -> Path:
@@ -58,8 +58,15 @@ def run_validation(test_dir: Path, database: dict) -> list:
     Returns rows for calculate_metrics: {'true_id', 'pred_id'}.
     """
     results = []
+    genuine_scores = []
+    imposter_scores =[]
     items = [i for i in get_all_images(str(test_dir)) if i["id"] is not None]
     total = len(items)
+
+    import cv2
+    bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck = True)
+
+
     for n, item in enumerate(items, start=1):
         true_id = item["id"]
         image = load_image(item["path"])
@@ -72,9 +79,19 @@ def run_validation(test_dir: Path, database: dict) -> list:
             continue
         pred_id, _score = identify_user(feats, database)
         results.append({"true_id": true_id, "pred_id": pred_id})
+
+        # Score collection for ROC (Genuine vs Imposter)       
+        for person_id, templates in database.items():
+            scores = [match_fingerprints(feats, t, bf) for t in templates]
+            max_s = max(scores) if scores else 0
+            if person_id == true_id:
+                genuine_scores.append(max_s)
+            else:
+                imposter_scores.append(max_s)
+
         if n == 1 or n % 25 == 0 or n == total:
             print(f"  Probes processed: {n}/{total}", flush=True)
-    return results
+    return results, genuine_scores, imposter_scores
 
 
 def _rates(metrics: dict) -> dict:
@@ -183,8 +200,11 @@ def main() -> int:
         "Note: full train+test pass can take tens of minutes on a laptop CPU.",
         flush=True,
     )
-    results = run_validation(test_dir, identify_db)
 
+    # Get results
+    results, gen_scores, imp_scores = run_validation(test_dir, identify_db)
+    
+    # Collect metrics
     metrics = calculate_metrics(results)
     rates = _rates(metrics)
     print(
@@ -198,6 +218,13 @@ def main() -> int:
         flush=True,
     )
 
+    # New Visualizations
+    print("Generating ROC Curve and Confusion Matrix...")
+    plot_roc_curve(gen_scores, imp_scores, root / "roc_curve.png")
+    plot_confusion_matrix(results, root / "confusion_matrix.png", num_classes=10)
+
+    print(f"Figures saved: roc_curve.png and confusion_matrix.png")
+    
     plot_path = root / "evaluation_plot.png"
     plot_evaluation(metrics, plot_path)
     print(f"Saved chart: {plot_path}", flush=True)
